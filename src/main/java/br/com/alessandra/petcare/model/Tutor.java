@@ -1,9 +1,12 @@
 package br.com.alessandra.petcare.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+
+import java.util.List;
 
 @Entity
 @Table(name = "tutor")
@@ -25,5 +28,8 @@ public class Tutor {
     private String email;
 
     private String endereco;
-}
 
+    @OneToMany(mappedBy = "tutor")
+    @JsonIgnore
+    private List<Pet> pets;
+}

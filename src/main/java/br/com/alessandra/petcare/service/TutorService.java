@@ -16,9 +16,9 @@ public class TutorService {
         this.tutorRepository = tutorRepository;
     }
 
-    // LISTAR TODOS
+    // LISTAR TODOS (ordenados por ID)
     public List<Tutor> listarTodos() {
-        return tutorRepository.findAll();
+        return tutorRepository.findAllByOrderByIdAsc();
     }
 
     // BUSCAR POR ID
@@ -61,7 +61,12 @@ public class TutorService {
     // EXCLUIR
     public void deletar(Long id) {
         Tutor tutor = buscarPorId(id); // garante que existe
-        // no futuro a gente pode colocar regra: não deletar se tiver pets adotados
+
+        // Verifica se há pets associados
+        if (tutor.getPets() != null && !tutor.getPets().isEmpty()) {
+            throw new RuntimeException("Não é possível deletar: este tutor possui pets associados.");
+        }
+
         tutorRepository.delete(tutor);
     }
 }
