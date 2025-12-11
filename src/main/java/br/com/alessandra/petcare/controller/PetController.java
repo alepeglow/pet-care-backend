@@ -25,13 +25,25 @@ public class PetController {
         return petService.listarTodos();
     }
 
+    // LISTAR APENAS PETS DISPONÍVEIS - GET /pets/disponiveis
+    @GetMapping("/disponiveis")
+    public List<Pet> listarDisponiveis() {
+        return petService.listarDisponiveis();
+    }
+
+    // LISTAR APENAS PETS ADOTADOS - GET /pets/adotados
+    @GetMapping("/adotados")
+    public List<Pet> listarAdotados() {
+        return petService.listarAdotados();
+    }
+
     // BUSCAR POR ID - GET /pets/{id}
     @GetMapping("/{id}")
     public Pet buscarPorId(@PathVariable Long id) {
         return petService.buscarPorId(id);
     }
 
-    // LISTAR POR TUTOR - GET /tutores/{idTutor}/pets
+    // LISTAR POR TUTOR - GET /pets/tutor/{idTutor}
     @GetMapping("/tutor/{idTutor}")
     public List<Pet> listarPorTutor(@PathVariable Long idTutor) {
         return petService.listarPorTutor(idTutor);
@@ -51,22 +63,27 @@ public class PetController {
         return petService.atualizar(id, pet);
     }
 
+    // ADOTAR PET - PUT /pets/{idPet}/adotar?tutorId=ID
+    @PutMapping("/{idPet}/adotar")
+    public ResponseEntity<Pet> adotarPet(
+            @PathVariable Long idPet,
+            @RequestParam Long tutorId) {
+
+        Pet petAdotado = petService.adotarPet(idPet, tutorId);
+        return ResponseEntity.ok(petAdotado);
+    }
+
+    // DEVOLVER PET - PUT /pets/{idPet}/devolver
+    @PutMapping("/{idPet}/devolver")
+    public ResponseEntity<Pet> devolverPet(@PathVariable Long idPet) {
+        Pet petDevolvido = petService.devolverPet(idPet);
+        return ResponseEntity.ok(petDevolvido);
+    }
+
     // DELETAR - DELETE /pets/{id}
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletar(@PathVariable Long id) {
         petService.deletar(id);
     }
-
-    // ADOTAR PET - POST /pets/{idPet}/adotar?tutorId=ID
-    @PostMapping("/{idPet}/adotar")
-    public ResponseEntity<Pet> adotar(
-            @PathVariable("idPet") Long idPet,
-            @RequestParam("tutorId") Long tutorId) {
-
-        Pet petAdotado = petService.adotarPet(idPet, tutorId);
-        return ResponseEntity.ok(petAdotado);
-    }
-
-
 }

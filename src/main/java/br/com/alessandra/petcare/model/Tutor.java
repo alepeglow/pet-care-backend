@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+
 import java.util.List;
 
 @Entity
@@ -32,4 +33,9 @@ public class Tutor {
     @OneToMany(mappedBy = "tutor")
     @JsonIgnore
     private List<Pet> pets;
+
+    @OneToMany(mappedBy = "tutor")
+    @JsonIgnore
+    private List<Adocao> adocoes;
+
 }

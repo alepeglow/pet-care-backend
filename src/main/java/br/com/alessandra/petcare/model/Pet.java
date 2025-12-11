@@ -1,6 +1,7 @@
 package br.com.alessandra.petcare.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -8,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "pet")
@@ -41,4 +43,14 @@ public class Pet {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Tutor tutor;
     // pode ser null antes de ser adotado
+
+    @OneToMany(mappedBy = "pet")
+    @JsonIgnore
+    private List<Adocao> adocoes;
+
+    @OneToMany(mappedBy = "pet")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private java.util.List<Cuidado> cuidados;
+
+
 }
