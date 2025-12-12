@@ -57,4 +57,18 @@ public class CuidadoController {
     public void deletar(@PathVariable Long id) {
         cuidadoService.deletar(id);
     }
+
+    // LISTAR POR TIPO - GET /cuidados/tipo/{tipo}
+    @GetMapping("/tipo/{tipo}")
+    public List<Cuidado> listarPorTipo(@PathVariable String tipo) {
+        return cuidadoService.listarPorTipo(tipo);
+    }
+
+    // LISTAR POR PET E TIPO - GET /cuidados/pet/{idPet}/tipo/{tipo}
+    @GetMapping("/pet/{idPet}/tipo/{tipo}")
+    public List<Cuidado> listarPorPetETipo(@PathVariable Long idPet,
+                                           @PathVariable String tipo) {
+        return cuidadoService.listarPorPetETipo(idPet, tipo);
+    }
+
 }

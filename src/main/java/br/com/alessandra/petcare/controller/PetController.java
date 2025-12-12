@@ -21,32 +21,32 @@ public class PetController {
 
     // LISTAR TODOS - GET /pets
     @GetMapping
-    public List<Pet> listarTodos() {
-        return petService.listarTodos();
+    public ResponseEntity<List<Pet>> listarTodos() {
+        return ResponseEntity.ok(petService.listarTodos());
     }
 
     // LISTAR APENAS PETS DISPONÍVEIS - GET /pets/disponiveis
     @GetMapping("/disponiveis")
-    public List<Pet> listarDisponiveis() {
-        return petService.listarDisponiveis();
+    public ResponseEntity<List<Pet>> listarDisponiveis() {
+        return ResponseEntity.ok(petService.listarDisponiveis());
     }
 
     // LISTAR APENAS PETS ADOTADOS - GET /pets/adotados
     @GetMapping("/adotados")
-    public List<Pet> listarAdotados() {
-        return petService.listarAdotados();
+    public ResponseEntity<List<Pet>> listarAdotados() {
+        return ResponseEntity.ok(petService.listarAdotados());
     }
 
     // BUSCAR POR ID - GET /pets/{id}
     @GetMapping("/{id}")
-    public Pet buscarPorId(@PathVariable Long id) {
-        return petService.buscarPorId(id);
+    public ResponseEntity<Pet> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(petService.buscarPorId(id));
     }
 
     // LISTAR POR TUTOR - GET /pets/tutor/{idTutor}
     @GetMapping("/tutor/{idTutor}")
-    public List<Pet> listarPorTutor(@PathVariable Long idTutor) {
-        return petService.listarPorTutor(idTutor);
+    public ResponseEntity<List<Pet>> listarPorTutor(@PathVariable Long idTutor) {
+        return ResponseEntity.ok(petService.listarPorTutor(idTutor));
     }
 
     // CRIAR - POST /pets
@@ -56,28 +56,26 @@ public class PetController {
         return ResponseEntity.status(HttpStatus.CREATED).body(criado);
     }
 
-    // ATUALIZAR - PUT /pets/{id}
+    // ATUALIZAR (cadastro) - PUT /pets/{id}
+    // Regras de negócio: status e tutor NÃO mudam aqui (só via /adotar e /devolver)
     @PutMapping("/{id}")
-    public Pet atualizar(@PathVariable Long id,
-                         @Valid @RequestBody Pet pet) {
-        return petService.atualizar(id, pet);
+    public ResponseEntity<Pet> atualizar(@PathVariable Long id, @Valid @RequestBody Pet pet) {
+        return ResponseEntity.ok(petService.atualizar(id, pet));
     }
 
     // ADOTAR PET - PUT /pets/{idPet}/adotar?tutorId=ID
     @PutMapping("/{idPet}/adotar")
     public ResponseEntity<Pet> adotarPet(
             @PathVariable Long idPet,
-            @RequestParam Long tutorId) {
+            @RequestParam("tutorId") Long tutorId) {
 
-        Pet petAdotado = petService.adotarPet(idPet, tutorId);
-        return ResponseEntity.ok(petAdotado);
+        return ResponseEntity.ok(petService.adotarPet(idPet, tutorId));
     }
 
     // DEVOLVER PET - PUT /pets/{idPet}/devolver
     @PutMapping("/{idPet}/devolver")
     public ResponseEntity<Pet> devolverPet(@PathVariable Long idPet) {
-        Pet petDevolvido = petService.devolverPet(idPet);
-        return ResponseEntity.ok(petDevolvido);
+        return ResponseEntity.ok(petService.devolverPet(idPet));
     }
 
     // DELETAR - DELETE /pets/{id}

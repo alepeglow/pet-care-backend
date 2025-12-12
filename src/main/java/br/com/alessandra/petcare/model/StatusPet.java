@@ -4,7 +4,5 @@ public enum StatusPet {
     DISPONIVEL,
     ADOTADO;
 
-    public boolean isBlank() {
-        return false;
-    }
+
 }
