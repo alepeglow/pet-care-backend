@@ -1,5 +1,7 @@
 package br.com.alessandra.petcare.service;
 
+import br.com.alessandra.petcare.exception.BusinessException;
+import br.com.alessandra.petcare.exception.NotFoundException;
 import br.com.alessandra.petcare.model.Cuidado;
 import br.com.alessandra.petcare.model.Pet;
 import br.com.alessandra.petcare.model.TipoCuidado;
@@ -37,24 +39,24 @@ public class CuidadoService {
 
     public Cuidado buscarPorId(Long id) {
         return cuidadoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cuidado não encontrado com id: " + id));
+                .orElseThrow(() -> new NotFoundException("Cuidado não encontrado com id: " + id));
     }
 
     public List<Cuidado> listarPorPet(Long idPet) {
         if (!petRepository.existsById(idPet)) {
-            throw new RuntimeException("Pet não encontrado com id: " + idPet);
+            throw new NotFoundException("Pet não encontrado com id: " + idPet);
         }
         return cuidadoRepository.findByPetIdOrderByDataDesc(idPet);
     }
 
     public List<Cuidado> listarPorTipo(String tipo) {
-        TipoCuidado tipoEnum = TipoCuidado.from(tipo);
+        TipoCuidado tipoEnum = TipoCuidado.from(tipo); // se lançar RuntimeException, teu handler pega
         return cuidadoRepository.findByTipoOrderByDataDesc(tipoEnum);
     }
 
     public List<Cuidado> listarPorPetETipo(Long idPet, String tipo) {
         if (!petRepository.existsById(idPet)) {
-            throw new RuntimeException("Pet não encontrado com id: " + idPet);
+            throw new NotFoundException("Pet não encontrado com id: " + idPet);
         }
         TipoCuidado tipoEnum = TipoCuidado.from(tipo);
         return cuidadoRepository.findByPetIdAndTipoOrderByDataDesc(idPet, tipoEnum);
@@ -66,16 +68,16 @@ public class CuidadoService {
         // mantém pet atual se não vier no body
         if (dadosAtualizados.getPet() != null && dadosAtualizados.getPet().getId() != null) {
             Pet pet = petRepository.findById(dadosAtualizados.getPet().getId())
-                    .orElseThrow(() -> new RuntimeException(
+                    .orElseThrow(() -> new NotFoundException(
                             "Pet não encontrado com id: " + dadosAtualizados.getPet().getId()));
             cuidado.setPet(pet);
         }
 
         if (dadosAtualizados.getTipo() == null) {
-            throw new RuntimeException("O tipo de cuidado é obrigatório.");
+            throw new BusinessException("O tipo de cuidado é obrigatório.");
         }
         if (dadosAtualizados.getData() == null) {
-            throw new RuntimeException("A data do cuidado é obrigatória.");
+            throw new BusinessException("A data do cuidado é obrigatória.");
         }
 
         cuidado.setTipo(dadosAtualizados.getTipo());
@@ -99,31 +101,31 @@ public class CuidadoService {
 
     private Pet validarEPegarPet(Cuidado cuidado) {
         if (cuidado.getPet() == null || cuidado.getPet().getId() == null) {
-            throw new RuntimeException("É obrigatório informar o pet no cuidado.");
+            throw new BusinessException("É obrigatório informar o pet no cuidado.");
         }
 
         return petRepository.findById(cuidado.getPet().getId())
-                .orElseThrow(() -> new RuntimeException(
+                .orElseThrow(() -> new NotFoundException(
                         "Pet não encontrado com id: " + cuidado.getPet().getId()));
     }
 
     private void validarENormalizar(Cuidado cuidado) {
         // tipo obrigatório
         if (cuidado.getTipo() == null) {
-            throw new RuntimeException("O tipo de cuidado é obrigatório.");
+            throw new BusinessException("O tipo de cuidado é obrigatório.");
         }
 
         // data obrigatória e não pode ser futura
         if (cuidado.getData() == null) {
-            throw new RuntimeException("A data do cuidado é obrigatória.");
+            throw new BusinessException("A data do cuidado é obrigatória.");
         }
         if (cuidado.getData().isAfter(LocalDate.now())) {
-            throw new RuntimeException("A data do cuidado não pode ser no futuro.");
+            throw new BusinessException("A data do cuidado não pode ser no futuro.");
         }
 
         // custo não pode ser negativo
         if (cuidado.getCusto() != null && cuidado.getCusto().signum() < 0) {
-            throw new RuntimeException("O custo do cuidado não pode ser negativo.");
+            throw new BusinessException("O custo do cuidado não pode ser negativo.");
         }
 
         // normaliza descrição
@@ -135,7 +137,7 @@ public class CuidadoService {
         // descrição obrigatória para alguns tipos
         if (precisaDescricao(cuidado.getTipo())) {
             if (cuidado.getDescricao() == null || cuidado.getDescricao().isBlank()) {
-                throw new RuntimeException("Descrição é obrigatória para o tipo: " + cuidado.getTipo());
+                throw new BusinessException("Descrição é obrigatória para o tipo: " + cuidado.getTipo());
             }
         }
     }

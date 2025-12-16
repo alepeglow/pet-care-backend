@@ -21,14 +21,14 @@ public class TutorController {
 
     // LISTAR TODOS - GET /tutores
     @GetMapping
-    public List<Tutor> listarTodos() {
-        return tutorService.listarTodos();
+    public ResponseEntity<List<Tutor>> listarTodos() {
+        return ResponseEntity.ok(tutorService.listarTodos());
     }
 
     // BUSCAR POR ID - GET /tutores/{id}
     @GetMapping("/{id}")
-    public Tutor buscarPorId(@PathVariable Long id) {
-        return tutorService.buscarPorId(id);
+    public ResponseEntity<Tutor> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(tutorService.buscarPorId(id));
     }
 
     // CRIAR - POST /tutores
@@ -40,16 +40,15 @@ public class TutorController {
 
     // ATUALIZAR - PUT /tutores/{id}
     @PutMapping("/{id}")
-    public Tutor atualizar(@PathVariable Long id,
-                           @Valid @RequestBody Tutor tutor) {
-        return tutorService.atualizar(id, tutor);
+    public ResponseEntity<Tutor> atualizar(@PathVariable Long id, @Valid @RequestBody Tutor tutor) {
+        return ResponseEntity.ok(tutorService.atualizar(id, tutor));
     }
 
     // DELETAR - DELETE /tutores/{id}
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletar(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
         tutorService.deletar(id);
+        return ResponseEntity.noContent().build();
     }
 
 

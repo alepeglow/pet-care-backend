@@ -12,7 +12,11 @@ public interface TutorRepository extends JpaRepository<Tutor, Long> {
 
     // Busca tutor pelo email (para validar e-mail único)
     Optional<Tutor> findByEmail(String email);
+    Optional<Tutor> findByEmailIgnoreCase(String email);
+    boolean existsByEmailIgnoreCase(String email);
 
     // Lista todos os tutores ordenados por ID crescente
     List<Tutor> findAllByOrderByIdAsc();
+
+
 }

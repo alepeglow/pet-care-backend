@@ -1,11 +1,47 @@
 package br.com.alessandra.petcare.exception;
 
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-public record ApiErrorResponse(
-        LocalDateTime timestamp,
-        int status,
-        String error,
-        String message,
-        String path
-) {}
+import java.time.LocalDateTime;
+import java.util.Map;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ApiErrorResponse {
+
+    private LocalDateTime timestamp;
+    private int status;
+    private String error;
+    private String message;
+    private String path;
+
+    // opcional: para erros de validação (campo -> mensagem)
+    private Map<String, String> fieldErrors;
+
+    public ApiErrorResponse() {}
+
+    public ApiErrorResponse(LocalDateTime timestamp, int status, String error, String message, String path) {
+        this.timestamp = timestamp;
+        this.status = status;
+        this.error = error;
+        this.message = message;
+        this.path = path;
+    }
+
+    public static ApiErrorResponse of(int status, String error, String message, String path) {
+        return new ApiErrorResponse(LocalDateTime.now(), status, error, message, path);
+    }
+
+    // getters/setters
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public int getStatus() { return status; }
+    public void setStatus(int status) { this.status = status; }
+    public String getError() { return error; }
+    public void setError(String error) { this.error = error; }
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+    public String getPath() { return path; }
+    public void setPath(String path) { this.path = path; }
+    public Map<String, String> getFieldErrors() { return fieldErrors; }
+    public void setFieldErrors(Map<String, String> fieldErrors) { this.fieldErrors = fieldErrors; }
+}

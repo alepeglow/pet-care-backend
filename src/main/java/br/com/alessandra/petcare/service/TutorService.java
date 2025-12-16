@@ -1,8 +1,12 @@
 package br.com.alessandra.petcare.service;
 
+import br.com.alessandra.petcare.exception.BusinessException;
+import br.com.alessandra.petcare.exception.NotFoundException;
 import br.com.alessandra.petcare.model.Tutor;
+import br.com.alessandra.petcare.repository.PetRepository;
 import br.com.alessandra.petcare.repository.TutorRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -10,61 +14,59 @@ import java.util.List;
 public class TutorService {
 
     private final TutorRepository tutorRepository;
+    private final PetRepository petRepository;
 
-    // injeção de dependência via construtor
-    public TutorService(TutorRepository tutorRepository) {
+    public TutorService(TutorRepository tutorRepository, PetRepository petRepository) {
         this.tutorRepository = tutorRepository;
+        this.petRepository = petRepository;
     }
 
-    // LISTAR TODOS (ordenados por ID)
     public List<Tutor> listarTodos() {
         return tutorRepository.findAllByOrderByIdAsc();
     }
 
-    // BUSCAR POR ID
     public Tutor buscarPorId(Long id) {
         return tutorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tutor não encontrado com id: " + id));
+                .orElseThrow(() -> new NotFoundException("Tutor não encontrado com id: " + id));
     }
 
-    // CRIAR (com validação de e-mail único)
     public Tutor criar(Tutor tutor) {
-
-        var existente = tutorRepository.findByEmail(tutor.getEmail());
-        if (existente.isPresent()) {
-            throw new RuntimeException("Já existe um tutor cadastrado com este e-mail.");
+        if (tutorRepository.findByEmail(tutor.getEmail()).isPresent()) {
+            throw new BusinessException("Já existe um tutor cadastrado com este e-mail.");
         }
-
         return tutorRepository.save(tutor);
     }
 
-    // ATUALIZAR
     public Tutor atualizar(Long id, Tutor dadosAtualizados) {
-        Tutor tutor = buscarPorId(id); // reaproveita validação
+        Tutor tutor = buscarPorId(id);
 
-        // se trocar o e-mail, valida se já não existe outro usando esse e-mail
-        if (!tutor.getEmail().equals(dadosAtualizados.getEmail())) {
-            var existente = tutorRepository.findByEmail(dadosAtualizados.getEmail());
-            if (existente.isPresent()) {
-                throw new RuntimeException("Já existe um tutor cadastrado com este e-mail.");
-            }
+        String emailAtual = tutor.getEmail();
+        String novoEmail = dadosAtualizados.getEmail();
+
+        // se trocar o e-mail, valida duplicidade (mas ignora se for o próprio tutor)
+        if (novoEmail != null && !novoEmail.equals(emailAtual)) {
+            tutorRepository.findByEmail(novoEmail).ifPresent(outro -> {
+                if (!outro.getId().equals(id)) {
+                    throw new BusinessException("Já existe um tutor cadastrado com este e-mail.");
+                }
+            });
         }
 
         tutor.setNome(dadosAtualizados.getNome());
         tutor.setTelefone(dadosAtualizados.getTelefone());
-        tutor.setEmail(dadosAtualizados.getEmail());
+        tutor.setEmail(novoEmail);
         tutor.setEndereco(dadosAtualizados.getEndereco());
 
         return tutorRepository.save(tutor);
     }
 
-    // EXCLUIR
+    @Transactional
     public void deletar(Long id) {
-        Tutor tutor = buscarPorId(id); // garante que existe
+        Tutor tutor = buscarPorId(id);
 
-        // Verifica se há pets associados
-        if (tutor.getPets() != null && !tutor.getPets().isEmpty()) {
-            throw new RuntimeException("Não é possível deletar: este tutor possui pets associados.");
+        // checa se existe algum pet vinculado a esse tutor
+        if (petRepository.existsByTutor_Id(id)) {
+            throw new BusinessException("Não é possível deletar: este tutor possui pets associados.");
         }
 
         tutorRepository.delete(tutor);

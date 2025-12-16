@@ -12,9 +12,13 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
     // listar pets de um tutor específico
     List<Pet> findByTutor(Tutor tutor);
 
-    // listar pets por status (ex: DISPONIVEL ou ADOTADO)
-    List<Pet> findByStatus(String status);
-
     // Retorna todos os pets filtrados pelo status informado(disponivel ou adotado)
     List<Pet> findByStatus(StatusPet status);
+
+    // descobre se existe(ou quantos existem) pets vinculados a um tutor
+    boolean existsByTutor_Id(Long tutorId);
+
+
+
 }
+

@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -41,15 +43,21 @@ public class Pet {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_tutor")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Tutor tutor;
     // pode ser null antes de ser adotado
 
     @OneToMany(mappedBy = "pet")
     @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Adocao> adocoes;
 
     @OneToMany(mappedBy = "pet")
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private java.util.List<Cuidado> cuidados;
 
 
