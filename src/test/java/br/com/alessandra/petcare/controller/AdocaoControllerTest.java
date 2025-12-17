@@ -6,8 +6,10 @@ import br.com.alessandra.petcare.model.Adocao;
 import br.com.alessandra.petcare.service.AdocaoService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,7 +20,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AdocaoController.class)
-@Import(GlobalExceptionHandler.class) // importante pra transformar NotFoundException em 404 JSON
+@AutoConfigureMockMvc(addFilters = false)
+@Import(GlobalExceptionHandler.class)
 class AdocaoControllerTest {
 
     @Autowired
@@ -41,6 +44,7 @@ class AdocaoControllerTest {
                 .andExpect(jsonPath("$[1].id").value(2));
 
         verify(adocaoService).listarPorPet(1L);
+        verifyNoMoreInteractions(adocaoService);
     }
 
     @Test
@@ -50,9 +54,11 @@ class AdocaoControllerTest {
 
         mockMvc.perform(get("/adocoes/pet/99"))
                 .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("Pet não encontrado com id: 99"));
 
         verify(adocaoService).listarPorPet(99L);
+        verifyNoMoreInteractions(adocaoService);
     }
 
     @Test
@@ -67,6 +73,7 @@ class AdocaoControllerTest {
                 .andExpect(jsonPath("$[0].id").value(10));
 
         verify(adocaoService).listarPorTutor(7L);
+        verifyNoMoreInteractions(adocaoService);
     }
 
     @Test
@@ -76,8 +83,10 @@ class AdocaoControllerTest {
 
         mockMvc.perform(get("/adocoes/tutor/999"))
                 .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("Tutor não encontrado com id: 999"));
 
         verify(adocaoService).listarPorTutor(999L);
+        verifyNoMoreInteractions(adocaoService);
     }
 }

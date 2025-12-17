@@ -1,5 +1,8 @@
 package br.com.alessandra.petcare.controller;
 
+import br.com.alessandra.petcare.exception.BusinessException;
+import br.com.alessandra.petcare.exception.GlobalExceptionHandler;
+import br.com.alessandra.petcare.exception.NotFoundException;
 import br.com.alessandra.petcare.model.Tutor;
 import br.com.alessandra.petcare.service.TutorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,6 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TutorController.class)
+@Import(GlobalExceptionHandler.class) // <<< pra transformar exceptions em JSON padrão
 @AutoConfigureMockMvc(addFilters = false)
 class TutorControllerTest {
 
@@ -72,6 +77,19 @@ class TutorControllerTest {
     }
 
     @Test
+    void buscarPorId_quandoNaoEncontrado_deveRetornar404ComJsonPadrao() throws Exception {
+        when(tutorService.buscarPorId(99L))
+                .thenThrow(new NotFoundException("Tutor não encontrado com id: 99"));
+
+        mockMvc.perform(get("/tutores/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Tutor não encontrado com id: 99"))
+                .andExpect(jsonPath("$.path").value("/tutores/99"));
+
+        verify(tutorService).buscarPorId(99L);
+    }
+
+    @Test
     void criar_deveRetornar201() throws Exception {
         Tutor retorno = tutor(5L, "Duda", "duda@email.com");
         when(tutorService.criar(any(Tutor.class))).thenReturn(retorno);
@@ -92,6 +110,30 @@ class TutorControllerTest {
                 .andExpect(jsonPath("$.id").value(5))
                 .andExpect(jsonPath("$.nome").value("Duda"))
                 .andExpect(jsonPath("$.email").value("duda@email.com"));
+
+        verify(tutorService).criar(any(Tutor.class));
+    }
+
+    @Test
+    void criar_quandoEmailDuplicado_deveRetornar400ComJsonPadrao() throws Exception {
+        when(tutorService.criar(any(Tutor.class)))
+                .thenThrow(new BusinessException("Já existe um tutor cadastrado com este e-mail."));
+
+        String body = """
+            {
+              "nome": "Duda",
+              "telefone": "99999-0000",
+              "email": "duda@email.com",
+              "endereco": "Rua Y, 50"
+            }
+            """;
+
+        mockMvc.perform(post("/tutores")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Já existe um tutor cadastrado com este e-mail."))
+                .andExpect(jsonPath("$.path").value("/tutores"));
 
         verify(tutorService).criar(any(Tutor.class));
     }
@@ -149,7 +191,8 @@ class TutorControllerTest {
         mockMvc.perform(post("/tutores")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").exists());
 
         verify(tutorService, never()).criar(any());
     }
@@ -168,9 +211,9 @@ class TutorControllerTest {
         mockMvc.perform(post("/tutores")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").exists());
 
         verify(tutorService, never()).criar(any());
     }
 }
-

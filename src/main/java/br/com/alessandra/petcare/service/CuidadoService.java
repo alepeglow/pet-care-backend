@@ -50,7 +50,7 @@ public class CuidadoService {
     }
 
     public List<Cuidado> listarPorTipo(String tipo) {
-        TipoCuidado tipoEnum = TipoCuidado.from(tipo); // se lançar RuntimeException, teu handler pega
+        TipoCuidado tipoEnum = parseTipo(tipo);
         return cuidadoRepository.findByTipoOrderByDataDesc(tipoEnum);
     }
 
@@ -58,8 +58,16 @@ public class CuidadoService {
         if (!petRepository.existsById(idPet)) {
             throw new NotFoundException("Pet não encontrado com id: " + idPet);
         }
-        TipoCuidado tipoEnum = TipoCuidado.from(tipo);
+        TipoCuidado tipoEnum = parseTipo(tipo);
         return cuidadoRepository.findByPetIdAndTipoOrderByDataDesc(idPet, tipoEnum);
+    }
+
+    private TipoCuidado parseTipo(String tipo) {
+        try {
+            return TipoCuidado.from(tipo);
+        } catch (Exception e) {
+            throw new BusinessException("Tipo de cuidado inválido: " + tipo);
+        }
     }
 
     public Cuidado atualizar(Long id, Cuidado dadosAtualizados) {

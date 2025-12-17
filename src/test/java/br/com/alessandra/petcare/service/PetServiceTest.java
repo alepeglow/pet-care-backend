@@ -101,18 +101,17 @@ class PetServiceTest {
         pet.setStatus(StatusPet.ADOTADO);
 
         when(petRepository.findById(idPet)).thenReturn(Optional.of(pet));
-        when(adocaoRepository.findFirstByPetAndStatusOrderByDataAdocaoDesc(pet, StatusAdocao.ATIVA))
-                .thenReturn(Optional.empty()); // importante!
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> petService.adotarPet(idPet, 99L));
 
-        assertTrue(ex.getMessage().toUpperCase().contains("ADOTADO"));
+        assertEquals("Este pet já está marcado como ADOTADO.", ex.getMessage());
 
         verify(tutorRepository, never()).findById(anyLong());
         verify(petRepository, never()).save(any());
         verify(adocaoRepository, never()).save(any());
     }
+
 
 
     @Test

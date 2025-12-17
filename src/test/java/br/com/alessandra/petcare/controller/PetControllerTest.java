@@ -1,5 +1,8 @@
 package br.com.alessandra.petcare.controller;
 
+import br.com.alessandra.petcare.exception.BusinessException;
+import br.com.alessandra.petcare.exception.GlobalExceptionHandler;
+import br.com.alessandra.petcare.exception.NotFoundException;
 import br.com.alessandra.petcare.model.Pet;
 import br.com.alessandra.petcare.model.StatusPet;
 import br.com.alessandra.petcare.model.Tutor;
@@ -7,7 +10,9 @@ import br.com.alessandra.petcare.service.PetService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,6 +28,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(PetController.class)
+@Import(GlobalExceptionHandler.class) // <<< transforma NotFound/Business em JSON padrão
+@AutoConfigureMockMvc(addFilters = false)
 class PetControllerTest {
 
     @Autowired
@@ -99,6 +106,20 @@ class PetControllerTest {
     }
 
     @Test
+    void buscarPorId_quandoNaoEncontrado_deveRetornar404ComJsonPadrao() throws Exception {
+        when(petService.buscarPorId(99L))
+                .thenThrow(new NotFoundException("Pet não encontrado com id: 99"));
+
+        mockMvc.perform(get("/pets/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Pet não encontrado com id: 99"))
+                .andExpect(jsonPath("$.path").value("/pets/99"));
+
+        verify(petService).buscarPorId(99L);
+        verifyNoMoreInteractions(petService);
+    }
+
+    @Test
     void listarPorTutor_deveRetornar200ELista() throws Exception {
         Long idTutor = 10L;
 
@@ -118,8 +139,21 @@ class PetControllerTest {
     }
 
     @Test
+    void listarPorTutor_quandoTutorNaoExiste_deveRetornar404ComJsonPadrao() throws Exception {
+        when(petService.listarPorTutor(77L))
+                .thenThrow(new NotFoundException("Tutor não encontrado com id: 77"));
+
+        mockMvc.perform(get("/pets/tutor/77"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Tutor não encontrado com id: 77"))
+                .andExpect(jsonPath("$.path").value("/pets/tutor/77"));
+
+        verify(petService).listarPorTutor(77L);
+        verifyNoMoreInteractions(petService);
+    }
+
+    @Test
     void criar_deveRetornar201() throws Exception {
-        // Ajusta os campos abaixo caso teu Pet tenha @NotNull/@NotBlank neles
         Pet body = new Pet();
         body.setNome("Bolt");
         body.setEspecie("CACHORRO");
@@ -151,6 +185,29 @@ class PetControllerTest {
     }
 
     @Test
+    void criar_quandoRegraNegocio_deveRetornar400ComJsonPadrao() throws Exception {
+        when(petService.criar(any(Pet.class)))
+                .thenThrow(new BusinessException("Não é permitido criar pet como ADOTADO. Use o endpoint de adoção."));
+
+        Pet body = new Pet();
+        body.setNome("Bolt");
+        body.setEspecie("CACHORRO");
+        body.setStatus(StatusPet.ADOTADO);
+        body.setDataEntrada(LocalDate.now());
+
+        mockMvc.perform(post("/pets")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Não é permitido criar pet como ADOTADO. Use o endpoint de adoção."))
+                .andExpect(jsonPath("$.path").value("/pets"));
+
+        verify(petService).criar(any(Pet.class));
+        verifyNoMoreInteractions(petService);
+    }
+
+    @Test
     void atualizar_deveRetornar200() throws Exception {
         Long id = 5L;
 
@@ -159,9 +216,8 @@ class PetControllerTest {
         body.setEspecie("GATO");
         body.setRaca("SRD");
         body.setIdade(3);
-        body.setStatus(StatusPet.DISPONIVEL); // <-- ADICIONA ISSO
+        body.setStatus(StatusPet.DISPONIVEL);
         body.setDataEntrada(LocalDate.now());
-
 
         Pet atualizado = new Pet();
         atualizado.setId(id);
@@ -182,6 +238,29 @@ class PetControllerTest {
                 .andExpect(jsonPath("$.nome").value("Mel"));
 
         verify(petService).atualizar(eq(id), any(Pet.class));
+        verifyNoMoreInteractions(petService);
+    }
+
+    @Test
+    void atualizar_quandoTentaAlterarStatusOuTutor_deveRetornar400ComJsonPadrao() throws Exception {
+        when(petService.atualizar(eq(5L), any(Pet.class)))
+                .thenThrow(new BusinessException("Não é permitido alterar o STATUS pelo PUT /pets/{id}. Use /adotar ou /devolver."));
+
+        Pet body = new Pet();
+        body.setNome("Mel");
+        body.setEspecie("GATO");
+        body.setStatus(StatusPet.ADOTADO);
+        body.setDataEntrada(LocalDate.now());
+
+        mockMvc.perform(put("/pets/5")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Não é permitido alterar o STATUS pelo PUT /pets/{id}. Use /adotar ou /devolver."))
+                .andExpect(jsonPath("$.path").value("/pets/5"));
+
+        verify(petService).atualizar(eq(5L), any(Pet.class));
         verifyNoMoreInteractions(petService);
     }
 
@@ -212,6 +291,36 @@ class PetControllerTest {
     }
 
     @Test
+    void adotarPet_quandoPetOuTutorNaoExiste_deveRetornar404ComJsonPadrao() throws Exception {
+        when(petService.adotarPet(99L, 10L))
+                .thenThrow(new NotFoundException("Pet não encontrado com id: 99"));
+
+        mockMvc.perform(put("/pets/99/adotar")
+                        .param("tutorId", "10"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Pet não encontrado com id: 99"))
+                .andExpect(jsonPath("$.path").value("/pets/99/adotar"));
+
+        verify(petService).adotarPet(99L, 10L);
+        verifyNoMoreInteractions(petService);
+    }
+
+    @Test
+    void adotarPet_quandoRegraNegocio_deveRetornar400ComJsonPadrao() throws Exception {
+        when(petService.adotarPet(1L, 10L))
+                .thenThrow(new BusinessException("Este pet já está marcado como ADOTADO."));
+
+        mockMvc.perform(put("/pets/1/adotar")
+                        .param("tutorId", "10"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Este pet já está marcado como ADOTADO."))
+                .andExpect(jsonPath("$.path").value("/pets/1/adotar"));
+
+        verify(petService).adotarPet(1L, 10L);
+        verifyNoMoreInteractions(petService);
+    }
+
+    @Test
     void devolverPet_deveRetornar200EJsonDoPet() throws Exception {
         Long idPet = 1L;
 
@@ -232,11 +341,39 @@ class PetControllerTest {
     }
 
     @Test
+    void devolverPet_quandoNaoAdotado_deveRetornar400ComJsonPadrao() throws Exception {
+        when(petService.devolverPet(1L))
+                .thenThrow(new BusinessException("Não é possível devolver: este pet não está adotado."));
+
+        mockMvc.perform(put("/pets/1/devolver"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Não é possível devolver: este pet não está adotado."))
+                .andExpect(jsonPath("$.path").value("/pets/1/devolver"));
+
+        verify(petService).devolverPet(1L);
+        verifyNoMoreInteractions(petService);
+    }
+
+    @Test
     void deletar_deveRetornar204() throws Exception {
         doNothing().when(petService).deletar(5L);
 
         mockMvc.perform(delete("/pets/5"))
                 .andExpect(status().isNoContent());
+
+        verify(petService).deletar(5L);
+        verifyNoMoreInteractions(petService);
+    }
+
+    @Test
+    void deletar_quandoNaoEncontrado_deveRetornar404ComJsonPadrao() throws Exception {
+        doThrow(new NotFoundException("Pet não encontrado com id: 5"))
+                .when(petService).deletar(5L);
+
+        mockMvc.perform(delete("/pets/5"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Pet não encontrado com id: 5"))
+                .andExpect(jsonPath("$.path").value("/pets/5"));
 
         verify(petService).deletar(5L);
         verifyNoMoreInteractions(petService);

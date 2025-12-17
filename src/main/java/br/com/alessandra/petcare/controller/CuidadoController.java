@@ -1,7 +1,13 @@
 package br.com.alessandra.petcare.controller;
 
+import br.com.alessandra.petcare.exception.ApiErrorResponse;
 import br.com.alessandra.petcare.model.Cuidado;
 import br.com.alessandra.petcare.service.CuidadoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Cuidados", description = "Registro e consulta de cuidados (banho, tosa, vacina, etc.)")
 @RestController
 @RequestMapping("/cuidados")
 public class CuidadoController {
@@ -19,56 +26,111 @@ public class CuidadoController {
         this.cuidadoService = cuidadoService;
     }
 
-    // CRIAR CUIDADO - POST /cuidados
+    @Operation(summary = "Criar cuidado")
+    @ApiResponse(responseCode = "201", description = "Criado")
+    @ApiResponse(
+            responseCode = "400",
+            description = "Erro de validação/negócio",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "Pet não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @PostMapping
     public ResponseEntity<Cuidado> criar(@Valid @RequestBody Cuidado cuidado) {
         Cuidado criado = cuidadoService.criar(cuidado);
         return ResponseEntity.status(HttpStatus.CREATED).body(criado);
     }
 
-    // LISTAR TODOS - GET /cuidados
+    @Operation(summary = "Listar todos os cuidados")
+    @ApiResponse(responseCode = "200", description = "OK")
     @GetMapping
-    public List<Cuidado> listarTodos() {
-        return cuidadoService.listarTodos();
+    public ResponseEntity<List<Cuidado>> listarTodos() {
+        return ResponseEntity.ok(cuidadoService.listarTodos());
     }
 
-    // BUSCAR POR ID - GET /cuidados/{id}
+    @Operation(summary = "Buscar cuidado por ID")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "404",
+            description = "Cuidado não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @GetMapping("/{id}")
-    public Cuidado buscarPorId(@PathVariable Long id) {
-        return cuidadoService.buscarPorId(id);
+    public ResponseEntity<Cuidado> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(cuidadoService.buscarPorId(id));
     }
 
-    // LISTAR POR PET - GET /cuidados/pet/{idPet}
+    @Operation(summary = "Listar cuidados por pet")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "404",
+            description = "Pet não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @GetMapping("/pet/{idPet}")
-    public List<Cuidado> listarPorPet(@PathVariable Long idPet) {
-        return cuidadoService.listarPorPet(idPet);
+    public ResponseEntity<List<Cuidado>> listarPorPet(@PathVariable Long idPet) {
+        return ResponseEntity.ok(cuidadoService.listarPorPet(idPet));
     }
 
-    // ATUALIZAR - PUT /cuidados/{id}
+    @Operation(summary = "Atualizar cuidado")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "400",
+            description = "Erro de validação/negócio",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "Cuidado/Pet não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @PutMapping("/{id}")
-    public Cuidado atualizar(@PathVariable Long id,
-                             @Valid @RequestBody Cuidado cuidado) {
-        return cuidadoService.atualizar(id, cuidado);
+    public ResponseEntity<Cuidado> atualizar(@PathVariable Long id, @Valid @RequestBody Cuidado cuidado) {
+        return ResponseEntity.ok(cuidadoService.atualizar(id, cuidado));
     }
 
-    // DELETAR - DELETE /cuidados/{id}
+    @Operation(summary = "Deletar cuidado")
+    @ApiResponse(responseCode = "204", description = "Sem conteúdo")
+    @ApiResponse(
+            responseCode = "404",
+            description = "Cuidado não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletar(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
         cuidadoService.deletar(id);
+        return ResponseEntity.noContent().build();
     }
 
-    // LISTAR POR TIPO - GET /cuidados/tipo/{tipo}
+    @Operation(summary = "Listar cuidados por tipo")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "400",
+            description = "Tipo inválido",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @GetMapping("/tipo/{tipo}")
-    public List<Cuidado> listarPorTipo(@PathVariable String tipo) {
-        return cuidadoService.listarPorTipo(tipo);
+    public ResponseEntity<List<Cuidado>> listarPorTipo(@PathVariable String tipo) {
+        return ResponseEntity.ok(cuidadoService.listarPorTipo(tipo));
     }
 
-    // LISTAR POR PET E TIPO - GET /cuidados/pet/{idPet}/tipo/{tipo}
+    @Operation(summary = "Listar cuidados por pet e tipo")
+    @ApiResponse(responseCode = "200", description = "OK")
+    @ApiResponse(
+            responseCode = "400",
+            description = "Tipo inválido",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "Pet não encontrado",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
     @GetMapping("/pet/{idPet}/tipo/{tipo}")
-    public List<Cuidado> listarPorPetETipo(@PathVariable Long idPet,
-                                           @PathVariable String tipo) {
-        return cuidadoService.listarPorPetETipo(idPet, tipo);
+    public ResponseEntity<List<Cuidado>> listarPorPetETipo(@PathVariable Long idPet, @PathVariable String tipo) {
+        return ResponseEntity.ok(cuidadoService.listarPorPetETipo(idPet, tipo));
     }
-
 }

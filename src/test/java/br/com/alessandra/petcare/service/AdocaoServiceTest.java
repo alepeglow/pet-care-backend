@@ -24,8 +24,10 @@ class AdocaoServiceTest {
 
     @Mock
     private AdocaoRepository adocaoRepository;
+
     @Mock
     private PetRepository petRepository;
+
     @Mock
     private TutorRepository tutorRepository;
 
@@ -35,6 +37,7 @@ class AdocaoServiceTest {
     @Test
     void listarPorPet_deveRetornarListaQuandoPetExiste() {
         Long idPet = 1L;
+
         Pet pet = new Pet();
         pet.setId(idPet);
 
@@ -42,23 +45,30 @@ class AdocaoServiceTest {
         when(adocaoRepository.findByPetOrderByDataAdocaoDesc(pet))
                 .thenReturn(List.of(new Adocao(), new Adocao()));
 
-        var lista = adocaoService.listarPorPet(idPet);
+        List<Adocao> lista = adocaoService.listarPorPet(idPet);
 
+        assertNotNull(lista);
         assertEquals(2, lista.size());
+
         verify(petRepository).findById(idPet);
         verify(adocaoRepository).findByPetOrderByDataAdocaoDesc(pet);
-        verifyNoMoreInteractions(adocaoRepository);
+
+        // garante que não salvou/alterou nada
+        verify(adocaoRepository, never()).save(any());
+        verify(adocaoRepository, never()).delete(any());
     }
 
     @Test
     void listarPorPet_deveFalharQuandoPetNaoExiste() {
         Long idPet = 1L;
+
         when(petRepository.findById(idPet)).thenReturn(Optional.empty());
 
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> adocaoService.listarPorPet(idPet));
 
         assertTrue(ex.getMessage().contains("Pet não encontrado"));
+
         verify(petRepository).findById(idPet);
         verifyNoInteractions(adocaoRepository);
     }
@@ -66,6 +76,7 @@ class AdocaoServiceTest {
     @Test
     void listarPorTutor_deveRetornarListaQuandoTutorExiste() {
         Long idTutor = 10L;
+
         Tutor tutor = new Tutor();
         tutor.setId(idTutor);
 
@@ -73,23 +84,30 @@ class AdocaoServiceTest {
         when(adocaoRepository.findByTutorOrderByDataAdocaoDesc(tutor))
                 .thenReturn(List.of(new Adocao()));
 
-        var lista = adocaoService.listarPorTutor(idTutor);
+        List<Adocao> lista = adocaoService.listarPorTutor(idTutor);
 
+        assertNotNull(lista);
         assertEquals(1, lista.size());
+
         verify(tutorRepository).findById(idTutor);
         verify(adocaoRepository).findByTutorOrderByDataAdocaoDesc(tutor);
-        verifyNoMoreInteractions(adocaoRepository);
+
+        // garante que não salvou/alterou nada
+        verify(adocaoRepository, never()).save(any());
+        verify(adocaoRepository, never()).delete(any());
     }
 
     @Test
     void listarPorTutor_deveFalharQuandoTutorNaoExiste() {
         Long idTutor = 10L;
+
         when(tutorRepository.findById(idTutor)).thenReturn(Optional.empty());
 
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> adocaoService.listarPorTutor(idTutor));
 
         assertTrue(ex.getMessage().contains("Tutor não encontrado"));
+
         verify(tutorRepository).findById(idTutor);
         verifyNoInteractions(adocaoRepository);
     }

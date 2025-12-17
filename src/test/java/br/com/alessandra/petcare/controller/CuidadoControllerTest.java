@@ -1,5 +1,8 @@
 package br.com.alessandra.petcare.controller;
 
+import br.com.alessandra.petcare.exception.BusinessException;
+import br.com.alessandra.petcare.exception.GlobalExceptionHandler;
+import br.com.alessandra.petcare.exception.NotFoundException;
 import br.com.alessandra.petcare.model.Cuidado;
 import br.com.alessandra.petcare.model.Pet;
 import br.com.alessandra.petcare.model.TipoCuidado;
@@ -9,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CuidadoController.class)
+@Import(GlobalExceptionHandler.class) // <<< essencial pro JSON de erro padronizado
 @AutoConfigureMockMvc(addFilters = false) // se tiver Security, evita 401/403
 class CuidadoControllerTest {
 
@@ -74,6 +79,30 @@ class CuidadoControllerTest {
     }
 
     @Test
+    void postCriar_quandoRegraDeNegocio_deveRetornar400ComJsonPadrao() throws Exception {
+        when(cuidadoService.criar(any(Cuidado.class)))
+                .thenThrow(new BusinessException("É obrigatório informar o pet no cuidado."));
+
+        String body = """
+            {
+              "tipo": "BANHO",
+              "descricao": "Banho completo",
+              "data": "%s",
+              "custo": 50.00
+            }
+            """.formatted(LocalDate.now());
+
+        mockMvc.perform(post("/cuidados")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("É obrigatório informar o pet no cuidado."))
+                .andExpect(jsonPath("$.path").value("/cuidados"));
+
+        verify(cuidadoService).criar(any(Cuidado.class));
+    }
+
+    @Test
     void getListarTodos_deveRetornar200() throws Exception {
         when(cuidadoService.listarTodos()).thenReturn(List.of(
                 cuidado(1L, 1L, TipoCuidado.BANHO),
@@ -99,6 +128,19 @@ class CuidadoControllerTest {
     }
 
     @Test
+    void getBuscarPorId_quandoNaoEncontrado_deveRetornar404ComJsonPadrao() throws Exception {
+        when(cuidadoService.buscarPorId(99L))
+                .thenThrow(new NotFoundException("Cuidado não encontrado com id: 99"));
+
+        mockMvc.perform(get("/cuidados/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Cuidado não encontrado com id: 99"))
+                .andExpect(jsonPath("$.path").value("/cuidados/99"));
+
+        verify(cuidadoService).buscarPorId(99L);
+    }
+
+    @Test
     void getListarPorPet_deveRetornar200() throws Exception {
         when(cuidadoService.listarPorPet(1L)).thenReturn(List.of(
                 cuidado(1L, 1L, TipoCuidado.BANHO)
@@ -109,6 +151,19 @@ class CuidadoControllerTest {
                 .andExpect(jsonPath("$.length()").value(1));
 
         verify(cuidadoService).listarPorPet(1L);
+    }
+
+    @Test
+    void getListarPorPet_quandoNaoEncontrado_deveRetornar404ComJsonPadrao() throws Exception {
+        when(cuidadoService.listarPorPet(99L))
+                .thenThrow(new NotFoundException("Pet não encontrado com id: 99"));
+
+        mockMvc.perform(get("/cuidados/pet/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Pet não encontrado com id: 99"))
+                .andExpect(jsonPath("$.path").value("/cuidados/pet/99"));
+
+        verify(cuidadoService).listarPorPet(99L);
     }
 
     @Test
