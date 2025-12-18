@@ -4,11 +4,12 @@ import br.com.alessandra.petcare.exception.BusinessException;
 import br.com.alessandra.petcare.exception.NotFoundException;
 import br.com.alessandra.petcare.model.*;
 import br.com.alessandra.petcare.repository.AdocaoRepository;
+import br.com.alessandra.petcare.repository.CuidadoRepository;
 import br.com.alessandra.petcare.repository.PetRepository;
 import br.com.alessandra.petcare.repository.TutorRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import br.com.alessandra.petcare.model.StatusAdocao;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -19,13 +20,16 @@ public class PetService {
     private final PetRepository petRepository;
     private final TutorRepository tutorRepository;
     private final AdocaoRepository adocaoRepository;
+    private final CuidadoRepository cuidadoRepository;
 
     public PetService(PetRepository petRepository,
                       TutorRepository tutorRepository,
-                      AdocaoRepository adocaoRepository) {
+                      AdocaoRepository adocaoRepository,
+                      CuidadoRepository cuidadoRepository){
         this.petRepository = petRepository;
         this.tutorRepository = tutorRepository;
         this.adocaoRepository = adocaoRepository;
+        this.cuidadoRepository = cuidadoRepository;
     }
 
     public List<Pet> listarTodos() {
@@ -96,11 +100,27 @@ public class PetService {
 
         return petRepository.save(pet);
     }
-
+    @Transactional
     public void deletar(Long id) {
         Pet pet = buscarPorId(id);
+
+        // (opcional mas recomendado) não deixa deletar se tiver adoção ativa
+        if (adocaoRepository.existsByPet_IdAndStatus(id, StatusAdocao.ATIVA)) {
+            throw new BusinessException("Não é possível deletar: pet possui adoção ATIVA.");
+        }
+
+        // apaga "filhos" primeiro
+        cuidadoRepository.deleteByPetId(id);
+        adocaoRepository.deleteByPetId(id);
+
+        // garante que foi pro banco antes do delete do pet
+        cuidadoRepository.flush();
+        adocaoRepository.flush();
+
         petRepository.delete(pet);
     }
+
+
 
     @Transactional
     public Pet adotarPet(Long idPet, Long idTutor) {
