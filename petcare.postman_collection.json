@@ -1,0 +1,485 @@
+{
+	"info": {
+		"_postman_id": "dfc112d3-7f60-43dd-9aa4-915ba6aaf738",
+		"name": "petcare",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "15631390"
+	},
+	"item": [
+		{
+			"name": "Pet",
+			"item": [
+				{
+					"name": "Listar Pets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/pets",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar pet por id",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Pet",
+					"request": {
+						"method": "POST",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar pets",
+					"request": {
+						"method": "PUT",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Pets",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/pets/5",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pets",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar pets de um tutor",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/pets/tutor/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pets",
+								"tutor",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tutor",
+			"item": [
+				{
+					"name": "Criar Tutor",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nome\": \"Carmem Peglow\",\r\n  \"telefone\": \"53991622487\",\r\n  \"email\": \"carmempeglow@gmail.com\",\r\n  \"endereco\": \"Rua General argolo, 975 - São Lourenço do Sul\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/tutores",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"tutores"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Tutores",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nome\": \"Carmem Peglow\",\r\n  \"telefone\": \"53991622487\",\r\n  \"email\": \"carmempeglow@gmail.com\",\r\n  \"endereco\": \"Rua General argolo, 975 - São Lourenço do Sul\"\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:8080/tutores",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"tutores"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar tutor por id",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Tutor",
+					"request": {
+						"method": "PUT",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Tutor",
+					"request": {
+						"method": "DELETE",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Adoção",
+			"item": [
+				{
+					"name": "Histórico de adoções por pet",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Devolver Pet",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/pets/1/devolver",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pets",
+								"1",
+								"devolver"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Adotar Pet",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/pets/1/adotar?tutorId=3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pets",
+								"1",
+								"adotar"
+							],
+							"query": [
+								{
+									"key": "tutorId",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Pets Adotados",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Pets disponíveis",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/pets/disponiveis",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pets",
+								"disponiveis"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cuidados do Pet",
+			"item": [
+				{
+					"name": "Cuidados",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tipo\": \"BANHO\",\r\n  \"descricao\": \"Banho completo com shampoo neutro\",\r\n  \"data\": \"2025-01-15\",\r\n  \"custo\": 60.00,\r\n  \"pet\": { \"id\": 1 }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/cuidados",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"cuidados"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Cuidados",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tipo\": \"BANHO\",\r\n  \"descricao\": \"Banho completo com shampoo neutro\",\r\n  \"data\": \"2025-01-15\",\r\n  \"custo\": 60.00,\r\n  \"pet\": { \"id\": 1 }\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:8080/cuidados",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"cuidados"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar cuidado por id",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tipo\": \"BANHO\",\r\n  \"descricao\": \"Banho completo com shampoo neutro\",\r\n  \"data\": \"2025-01-15\",\r\n  \"custo\": 60.00,\r\n  \"pet\": { \"id\": 1 }\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:8080/cuidados/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"cuidados",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar cuidados por pet",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tipo\": \"BANHO\",\r\n  \"descricao\": \"Banho completo com shampoo neutro\",\r\n  \"data\": \"2025-01-15\",\r\n  \"custo\": 60.00,\r\n  \"pet\": { \"id\": 1 }\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:8080/cuidados/pet/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"cuidados",
+								"pet",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar cuidados por tipo",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tipo\": \"BANHO\",\r\n  \"descricao\": \"Banho completo com shampoo neutro\",\r\n  \"data\": \"2025-01-15\",\r\n  \"custo\": 60.00,\r\n  \"pet\": { \"id\": 1 }\r\n}\r\n"
+						},
+						"url": {
+							"raw": "http://localhost:8080/cuidados/tipo/banho",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"cuidados",
+								"tipo",
+								"banho"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar cuidados por pet e tipo",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/cuidados/pet/2/tipo/vacina",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"cuidados",
+								"pet",
+								"2",
+								"tipo",
+								"vacina"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar cuidado",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/cuidados/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"cuidados",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar cuidado",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tipo\": \"BANHO\",\r\n  \"descricao\": \"Banho + secagem\",\r\n  \"data\": \"2025-12-12\",\r\n  \"custo\": 80.00,\r\n  \"pet\": { \"id\": 3 }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/cuidados/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"cuidados",
+								"3"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
